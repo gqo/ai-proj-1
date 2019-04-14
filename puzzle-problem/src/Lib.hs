@@ -4,6 +4,8 @@ import Data.List (lines)
 import Data.List.Split (splitOn, chunksOf)
 
 import Board
+import Heuristics
+import AStar
 
 -- readBoards takes the data received from reading a test file and cleans it 
 -- into manageable data (a tuple of two Int arrays)
@@ -12,8 +14,8 @@ readBoards content =
     -- construct a tuple from the generated array
     (flattenedBoards !! 0, flattenedBoards !! 1) :: (Board, Board)
     where
-        -- split data into lines
-        fLines = lines content
+        -- split data into cleaned (no \r\n) lines
+        fLines = map (filter (\x -> ((/=) '\r' x) && ((/=) '\n' x))) $ lines content
         -- remove new line and split integer characters
         splitFLines = map (splitOn " ") $ filter (/= "") fLines
         -- convert strings to ints
@@ -33,6 +35,39 @@ stringBoard :: [[Int]] -> String
 stringBoard [] = ""
 stringBoard (x:xs) = (show x) ++ "\n" ++ stringBoard xs
 
+stringList :: Show a => [a] -> String
+stringList [] = ""
+stringList (x:xs) =
+    (show x) ++ " " ++ stringList xs
+
+
+string2dBoard :: [[Int]] -> String
+string2dBoard [] = ""
+string2dBoard (x:xs) =
+    stringList x ++ "\n" ++ string2dBoard xs
+        
 -- ppBoard prints the a puzzle board in a pretty fashion
-ppBoard :: Board -> IO ()
-ppBoard = putStr . stringBoard . to2d
+ppBoard :: Board -> String
+ppBoard = string2dBoard . to2d
+
+printSolution :: SearchState -> String
+printSolution (SearchState startBoard goalBoard _ solutionDepth nodesGenerated _ _ solutionMoves solutionVals)
+    = ppBoard startBoard ++ "\n" ++
+      ppBoard goalBoard ++ "\n" ++
+      show solutionDepth ++ "\n" ++
+      show (fromIntegral (length nodesGenerated)) ++ "\n" ++
+      stringList solutionMoves ++ "\n" ++
+      stringList solutionVals ++ "\n"
+
+
+getSolution :: String -> Board -> Board -> String
+getSolution hnChoice startBoard goalBoard =
+    case hnChoice of
+        "0" ->
+            printSolution solution
+            where
+                solution = runAStar $ SearchState startBoard goalBoard manhattanHeuristic (-1) [] [] 0 [] []
+        "1" ->
+            printSolution solution
+            where
+                solution = runAStar $ SearchState startBoard goalBoard manhattanLinConflictHeuristic (-1) [] [] 0 [] []

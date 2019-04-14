@@ -21,8 +21,10 @@ coordLinConflict
     (leftGoalX, leftGoalY) 
     (rightStartX, rightStartY) 
     (rightGoalX, rightGoalY) =
+        -- are the coords in the same column?
         if listEquals $ leftStartX:leftGoalX:rightStartX:rightGoalX:[]
         then 
+            -- check whether they're in a linear conflict within the column
             if leftStartY < rightStartY
             then 
                 if leftGoalY > rightGoalY
@@ -34,8 +36,10 @@ coordLinConflict
                 then True
                 else False
             else False
+        -- are the coords in the same row?
         else if listEquals $ leftStartY:leftGoalY:rightStartY:rightGoalY:[]
         then
+            -- check if they're in a linear conflict within the row
             if leftStartX < rightStartX
             then
                 if leftGoalX > rightGoalX
@@ -63,6 +67,7 @@ linConflict current goal left right =
                 Nothing -> Nothing
         Nothing -> Nothing
 
+-- conv maybe bool to maybe int
 mBoolToInt :: Maybe Bool -> Maybe Int
 mBoolToInt mbool =
     case mbool of
@@ -74,31 +79,20 @@ mBoolToInt mbool =
 mBoolToIntList :: [Maybe Bool] -> [Maybe Int]
 mBoolToIntList = map mBoolToInt
 
+-- returns the sum of a list of bools as an int
 sumMaybeBool :: [Maybe Bool] -> Maybe Int
 sumMaybeBool = sumMaybeInt . mBoolToIntList
 
-t1 = [ 4, 3, 1,
-       7, 0, 2,
-       8, 5, 6 ] :: [Int]
-
-t2 = [ 1, 2, 3,
-       8, 0, 4,
-       7, 6, 5 ] :: [Int]
-
+-- for one value on the board, compute all its linear conflicts
 linConflictSumVal :: Board -> Board -> Int -> Maybe Int
 linConflictSumVal current goal val =
     sumMaybeBool conflicts
     where
         conflicts = map (linConflict current goal val) [1..8]
 
+-- for all values on the board, compute the total linear conflicts
 linConflictSum :: Board -> Board -> Maybe Int
 linConflictSum current goal =
     sumMaybeInt conflictSums
     where
         conflictSums = map (linConflictSumVal current goal) [1..8]
-
-testLinConflictSum :: Board -> Board -> Int
-testLinConflictSum current goal =
-    case linConflictSum current goal of
-        Just sum -> sum
-        Nothing -> -1

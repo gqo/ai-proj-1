@@ -5,8 +5,6 @@ import Index
 import Data.List (elemIndex, minimumBy)
 import Heuristics
 
-import qualified Control.DeepSeq as Deep
-
 data Move = L | R | U | D
     deriving (Eq)
 
@@ -30,7 +28,7 @@ data SearchState = SearchState {
     solutionDepth :: Int, -- holds the depth of the solution
     nodesGenerated :: NodeSet, -- holds the nodes that have been generated previously
     nodeQueue :: [NodeState], -- holds unexpanded nodes
-    numNodesGenerated :: Integer, -- holds number of generated nodes
+    numNodesGenerated :: Int, -- holds number of generated nodes
     solutionMoves :: [Move], -- holds the moves to the solution
     solutionVals :: [Int] -- holds the f(n) values to the solution
 }
@@ -74,7 +72,7 @@ instance Show SearchState where
           "\nDepth: " ++ show solutionDepth ++
         --   "\nNodes Generated: " ++ show nodesGenerated ++
         --   "\nNode queue: " ++ show nodeQueue ++
-          "\n# Nodes Generated: " ++ show numNodesGenerated ++
+          "\n# Nodes Generated: " ++ show (fromIntegral (length nodesGenerated)) ++
           "\nSolution Moves (newest first): " ++ show solutionMoves ++
           "\nSolution f(n)s (newest first): " ++ show solutionVals ++
           "\n---------------------------------------------"
@@ -230,7 +228,7 @@ runAStar (SearchState startBoard goalBoard heuristic solutionDepth nodesGenerate
                         newNodes = generateNewNodes nodesGenerated $ possibleNodes goalBoard heuristic $ NodeState current fval depth moves fvals
                         nodesGenerated' = recordNewNodes nodesGenerated newNodes
                         nodeQueue'' = nodeQueue' ++ newNodes
-                        numNodesGenerated' = Deep.force $ (+) numNodesGenerated (length newNodes)
+                        numNodesGenerated' =  numNodesGenerated + length newNodes
                         newState = SearchState startBoard goalBoard heuristic solutionDepth nodesGenerated' nodeQueue'' numNodesGenerated' solutionMoves solutionVals
             where
                 -- get next best node

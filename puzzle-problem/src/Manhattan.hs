@@ -31,9 +31,3 @@ manhattanSum current goal =
     sumMaybeInt distanceList
     where
         distanceList = map (manhattanDistance current goal) [1..8]
-
-testManhattanSum :: Board -> Board -> Int
-testManhattanSum current goal =
-    case manhattanSum current goal of
-        Just sum -> sum
-        Nothing -> -1
